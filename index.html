@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111827">
+<meta name="description" content="Control personal de peso y hábitos">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.svg" type="image/svg+xml">
+<title>Mi Progreso</title>
+<style>
+:root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#172033;background:#f5f7fb}
+*{box-sizing:border-box}body{margin:0}button,input{font:inherit}button{cursor:pointer}
+.app{max-width:760px;margin:auto;padding:14px 14px 84px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}
+h1,h2,h3,p{margin:0}.muted{color:#687386}.small{font-size:.82rem}.card{background:#fff;border:1px solid #e3e7ef;border-radius:22px;padding:16px;margin-bottom:12px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:#f7f8fb;border-radius:16px;padding:11px;text-align:center}.stat b{display:block;font-size:1.1rem}.stat span{font-size:.72rem;color:#687386}
+.primary,.ghost,.danger{border:0;border-radius:14px;padding:11px 14px;min-height:44px}.primary{background:#172033;color:#fff}.ghost{background:#eef1f6;color:#172033}.danger{background:#fff0f0;color:#a12626}
+.hero{display:grid;grid-template-columns:118px 1fr;gap:16px;align-items:center}.ring{width:118px;height:118px}.ring circle:last-child{transition:stroke-dashoffset .4s}
+.big{font-size:2.6rem;font-weight:800;line-height:1}.progress{height:9px;background:#e7eaf0;border-radius:99px;overflow:hidden}.progress>i{display:block;height:100%;background:#5d6fdf;border-radius:99px}
+.chart{width:100%;height:190px}.chart text{fill:#7a8495;font-size:11px}.legend{font-size:.75rem;color:#687386;display:flex;gap:16px}
+.goal{width:100%;text-align:left;border:1px solid #e5e8ef;background:#fafbfc;border-radius:15px;padding:10px 12px;min-height:46px;display:flex;align-items:center;gap:10px}.check{width:26px;height:26px;border-radius:50%;border:1px solid #cfd5df;display:grid;place-items:center;flex:none}.goal.done .check{background:#172033;color:#fff;border-color:#172033}.goal.done .label{text-decoration:line-through;color:#7c8491}
+.goals{display:grid;gap:7px;margin-top:10px}.nav{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(760px,100%);padding:8px 12px calc(8px + env(safe-area-inset-bottom));background:rgba(245,247,251,.96);border-top:1px solid #e1e5ec;display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.nav button{min-height:44px;border:0;border-radius:13px;background:transparent;color:#697386}.nav button.active{background:#e8ebf8;color:#172033;font-weight:700}
+.view{display:none}.view.active{display:block}.list{display:grid;gap:7px}.item{padding:12px;border:1px solid #e3e7ef;border-radius:15px;background:#fff}.empty{text-align:center;padding:24px;color:#687386}
+dialog{border:0;border-radius:22px;padding:0;width:min(440px,calc(100% - 28px));box-shadow:0 20px 70px #0003}dialog::backdrop{background:#10182888}.modal{padding:18px}.field{display:grid;gap:6px;margin:12px 0}.field input{width:100%;padding:11px 12px;border:1px solid #d7dce5;border-radius:12px;background:#fff}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+.badges{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.badge{padding:12px;border-radius:15px;background:#f7f8fb;border:1px solid #e4e7ed}.badge.locked{opacity:.45;filter:grayscale(1)}
+@media(max-width:430px){.app{padding:11px 11px 82px}.hero{grid-template-columns:96px 1fr;gap:12px}.ring{width:96px;height:96px}.big{font-size:2.15rem}.card{padding:13px;border-radius:19px}.grid3{gap:5px}.stat{padding:9px 5px}.stat b{font-size:1rem}}
+</style>
+</head>
+<body>
+<main class="app">
+  <div class="top"><div><div class="small muted">Mi progreso</div><h1>Control de peso</h1></div><button class="primary" id="addWeight">＋ Peso</button></div>
+
+  <section id="home" class="view active">
+    <div class="card">
+      <div class="hero">
+        <div class="ring">
+          <svg viewBox="0 0 120 120" width="100%" height="100%">
+            <circle cx="60" cy="60" r="50" fill="none" stroke="#e6e9ef" stroke-width="10"/>
+            <circle id="ring" cx="60" cy="60" r="50" fill="none" stroke="#5d6fdf" stroke-width="10" stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="314"/>
+          </svg>
+        </div>
+        <div><div class="big" id="current">—</div><div class="muted">kg</div><div style="margin-top:8px" class="small">Objetivo <b id="target">75,0 kg</b></div><div style="margin-top:6px;font-weight:700" id="delta">Sin registros</div></div>
+      </div>
+      <div class="grid3" style="margin-top:14px"><div class="stat"><b id="initial">—</b><span>inicial</span></div><div class="stat"><b id="remaining">—</b><span>restan kg</span></div><div class="stat"><b id="percent">0%</b><span>progreso</span></div></div>
+    </div>
+
+    <div class="card"><div class="row"><div><div class="small muted">Evolución</div><h2>Peso y tendencia</h2></div><span class="small muted" id="count">0 registros</span></div>
+      <svg id="chart" class="chart" viewBox="0 0 620 190" preserveAspectRatio="none" aria-label="Gráfica de peso"></svg>
+      <div class="legend"><span>● Peso registrado</span><span>╌ Tendencia</span></div>
+    </div>
+
+    <div class="card"><div class="row"><div><div class="small muted">Hoy</div><h2><span id="done">0</span>/<span id="total">0</span> objetivos</h2></div><div style="text-align:right"><b id="streak">0</b><div class="small muted">🔥 racha</div></div></div>
+      <div class="progress" style="margin-top:10px"><i id="goalBar" style="width:0%"></i></div>
+      <div class="goals" id="goals"></div>
+    </div>
+
+    <div class="card"><div class="row"><div><div class="small muted">Insignias</div><h2 id="badgeTitle">Primer paso</h2><div class="small muted" id="badgeSub">Completa tu primer día</div></div><div style="font-size:2rem" id="badgeIcon">🌱</div></div></div>
+  </section>
+
+  <section id="history" class="view">
+    <div class="card"><div class="row"><div><div class="small muted">Historial</div><h2>Tus pesajes</h2></div><button class="primary" id="addWeight2">＋ Peso</button></div><div id="historyList" class="list" style="margin-top:12px"></div></div>
+    <div class="card"><div class="small muted">Estadísticas</div><h2>Resumen</h2><div class="grid3" style="margin-top:12px"><div class="stat"><b id="avg7">—</b><span>media 7 días</span></div><div class="stat"><b id="weekly">—</b><span>ritmo/semana</span></div><div class="stat"><b id="days">0</b><span>días registrados</span></div></div></div>
+    <div class="card"><div class="small muted">Insignias</div><h2>Logros</h2><div id="badges" class="badges" style="margin-top:10px"></div></div>
+  </section>
+
+  <section id="settings" class="view">
+    <div class="card"><div class="small muted">Objetivo</div><h2>Peso objetivo</h2><div class="field"><label for="targetInput">Kilogramos</label><input id="targetInput" type="number" inputmode="decimal" min="20" max="300" step="0.1"></div><button class="primary" id="saveTarget">Guardar objetivo</button></div>
+    <div class="card"><div class="row"><div><div class="small muted">Rutina</div><h2>Objetivos diarios</h2></div><button class="primary" id="newGoal">＋ Añadir</button></div><div id="goalSettings" class="list" style="margin-top:12px"></div><p class="small muted" style="margin-top:12px">Puedes crear tus propios objetivos. También puedes añadir sugerencias.</p><div id="suggestions" class="list" style="margin-top:8px"></div></div>
+    <div class="card"><div class="small muted">Datos</div><h2>Almacenamiento local</h2><p class="small muted" style="margin-top:6px">Los datos de esta versión se guardan únicamente en este navegador mediante IndexedDB.</p><button class="danger" id="clearData" style="margin-top:12px">Borrar todos los datos</button></div>
+  </section>
+</main>
+
+<nav class="nav"><button data-view="home" class="active">Inicio</button><button data-view="history">Historial</button><button data-view="settings">Ajustes</button></nav>
+
+<dialog id="weightDialog"><form method="dialog" class="modal" id="weightForm"><h2>Registrar peso</h2><div class="field"><label for="weightInput">Peso (kg)</label><input id="weightInput" type="number" inputmode="decimal" min="20" max="300" step="0.1" required></div><div class="field"><label for="dateInput">Fecha</label><input id="dateInput" type="date" required></div><div class="actions"><button type="button" class="ghost" id="cancelWeight">Cancelar</button><button class="primary">Guardar</button></div></form></dialog>
+<dialog id="goalDialog"><form method="dialog" class="modal" id="goalForm"><h2 id="goalDialogTitle">Objetivo diario</h2><div class="field"><label for="goalInput">Objetivo</label><input id="goalInput" maxlength="80" required placeholder="Ej. Caminar 30 minutos"></div><div class="actions"><button type="button" class="ghost" id="cancelGoal">Cancelar</button><button class="primary">Guardar</button></div></form></dialog>
+
+<script src="app.js"></script>
+</body></html>
